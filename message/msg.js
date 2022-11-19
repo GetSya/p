@@ -34,6 +34,7 @@ const { igDownloader } = require("../lib/igdown")
 const { wikiSearch } = require("../lib/wiki")
 const { isLimit, limitAdd, getLimit, giveLimit, addBalance, kurangBalance, getBalance, isGame, gameAdd, givegame, cekGLimit } = require("../lib/limit");
 const { addList, deleteList, checkList } = require("../lib/list");
+const { addPrg, deletePrg, checkPrg } = require("../lib/prg");
 const { isTicTacToe, getPosTic } = require("../lib/tictactoe");
 const { addPlayGame, getJawabanGame, isPlayGame, cekWaktuGame, getGamePosi } = require("../lib/game");
 const { addCommands, checkCommands, deleteCommands } = require("../lib/autoresp");
@@ -57,7 +58,6 @@ const imgbb = require("imgbb-uploader");
 const ra = require("ra-api");
 const thiccysapi = require("textmaker-lasi");
 const kotz = require("kotz-api");
-const yts = require("yt-search");
 const rmvbg = require("removebg-wrapper");
 const speed = require("performance-now");
 const request = require("request");
@@ -131,6 +131,7 @@ const commandsDB = JSON.parse(fs.readFileSync('./database/commands.json'))
 const loginnya = JSON.parse(fs.readFileSync('./database/logins.json'))
 let mute = JSON.parse(fs.readFileSync('./database/mute.json'))
 let listnya = JSON.parse(fs.readFileSync('./database/list.json'))
+let prgnya = JSON.parse(fs.readFileSync('./database/prg.json'))
 
 moment.tz.setDefault("Asia/Jakarta").locale("id");
 
@@ -152,7 +153,7 @@ module.exports = async(conn, msg, m, setting, store) => {
 		    var prefix = /^[°•π÷×¶∆£¢€¥®™✓_=|~!?#$%^&.+-,\/\\©^]/.test(chats) ? chats.match(/^[°•π÷×¶∆£¢€¥®™✓_=|~!?#$%^&.+-,\/\\©^]/gi) : ''
         } else {
             if (nopref){
-                prefix = ''
+                prefix = '#'
             } else {
                 prefix = prefa
             }
@@ -301,17 +302,7 @@ module.exports = async(conn, msg, m, setting, store) => {
 		       return conn.sendMessage(from, { document: doc, mimetype: mime, caption: caption }, options)
 		    }
 		}
-        async function sendPlay(from, query) {
-			var url = await yts(query)
-			url = url.videos[0].url
-			hxz.youtube(url).then(async(data) => {
-				var but = [{buttonId: `/ytplay ${url}`, buttonText: { displayText: `🎵 Audio (${data.size_mp3})` }, type: 1 }, {buttonId: `/ytmp4 ${url}`, buttonText: { displayText: `🎥 Video (${data.size})` }, type: 1 }]
-				conn.sendMessage(from, { caption: `*Title :* ${data.title}\n*Quality :* ${data.quality}\n*Url :* https://youtu.be/${data.id}`, image: { url: data.thumb }, buttons: but, footer: pushname}, {quoted: msg})
-			}).catch((e) => {
-			  conn.sendMessage(from, { text: mess.error.api }, { quoted: msg })
-				ownerNumber.map( i => conn.sendMessage(ownerNumber[0], { text: `Send Play Error : ${e}` }))
-			})
-		 }
+    
         //dashboard
         async function addCountCmdUser(nama, sender, u) {
          var posi = null
@@ -708,52 +699,83 @@ if (chats.startsWith("fetch ")) {
 
 		switch(command) {
 			// Main Menu
-			case prefix+'menu':
-				var data = `*FOR OWNER MENU*\n>\nx\n\n*FOR USER*\n- /menfess\n- /login`
-				conn.sendMessage(from, {caption: data, image: fs.readFileSync('../media/mydoi.jpg')}, {quoted: msg})
+		case prefix+'start':
+			var sections = [
+				{
+				title: "INFO MENGENAI PARUNGTV",
+				rows: [
+					{title: "Social Media", rowId: "/socmed", description: "Pengenalan Social Media Parung Tv"},
+					{title: "Tim Parung TV", rowId: "/tim", description: "Pengenalan Dari Tim Parung TV"}
+				]
+				},
+				{
+				title: "INFO BERITA WILAYAH",
+				rows: [
+					{title: "PARUNG", rowId: "/parung", description: "Info Seputaran Tentang Parung"},
+					{title: "SAWANGAN", rowId: "/swg", description: "Info Seputaran Tentang Sawangan"}
+				]
+				},
+			]
+			var listMessage = {
+			  text: `Akun informasi & Berita akurat\n\nTanggal : ${tgl}\nJam : ${jam}`,
+			  footer: "youtube.com/channel/UCnsDBaIHszDveLO8HyubwNw",
+			  title: "*[ PARUNG TV INFORMASI ]*",
+			  buttonText: "PILIH DISINI",
+			  sections
+			}
+			conn.sendMessage(from, listMessage, {quoted: msg})
 			break
-			case prefix+'menfess':
-case prefix+'menfes':
-if (isGroup)return reply(`Hanya Bisa Di Gunakan Di Private Message!`)
-if (args.length < 2) return reply(`Kirim perintah ${command} nomer|pesan\nContoh ${command} 62813199449171|Kamu tu ganteng`)
-var nomor = q.split('|')[0] ? q.split('|')[0] : q
-var text = q.split('|')[1] ? q.split('|')[1] : ''
-var teksnya = `Hai kak ada Menfess nih!!\n${piw}\nDari : -\nPesan : _${text}_`
-
-var but = [{buttonId: `/menfesconfirm ${sender}`, buttonText: { displayText: 'Konfirmasi Menfess Diterima' }, type: 1 }]
-					conn.sendMessage(`${nomor}@s.whatsapp.net`, { caption: teksnya, image: {url: `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMkjAJhYezm4h6k1AJ6qfreGkaRdBcR7UHMw&usqp=CAU`}, buttons: but, footer: `SIAPA YA!!!` })
-reply(`Sukses Mengirim Menfess!!`)
+			case prefix+'addprg':
+				
+if (checkPrg(judul, prgnya) === true) return reply(`BERITA TERSEBUT SUDAH ADA`)
+var judul = q.split('|')[0] ? q.split('|')[0] : q
+var image = q.split('|')[1] ? q.split('|')[1] : q
+var deskripsi = q.split('|')[2] ? q.split('|')[2] : ''
+addPrg(judul, image, deskripsi, prgnya)
+var anunya = `Sukses Menambahkan Berita Di ParungTv Bagian ( Parung )\nPada Jam : ${jam}\nTanggal : ${tgl}`
+reply(anunya)
 break
-case prefix+'menfesconfirm':
-	if (!q) return reply('Hah')
-  conn.sendMessage(q, {text: `Menfess sudah di confirmasi oleh jodoh kamu`})
-  reply(`Menfess Telah Diterima.`)
-  break
-  case prefix+'login':
-case prefix+'daftar':
-case prefix+'sign-in':
-if (checkLogins(sender, loginnya) === true) return reply(`Kamu Sudah Login Hari Ini!\nKembalilah Esok hari!`)
-addLogin(pushname, sender, loginnya)
-var randomLimit = randomNomor(10, 30)
-var rndmLimit = randomNomor(10, 35)
-var blnc = randomNomor(5000, 15000)
-addBalance(sender, parseInt(blnc), balance)
-giveLimit(sender, parseInt(rndmLimit), limit)
-givegame(sender, parseInt(randomLimit), glimit)
-mentions(`Mengambil Data @${sender.split("@")[0]}`, [sender])
-var cpt = `_*REGISTERED*_\n\n🎟️ *Nama :* ${pushname}\n*🔢 Nomor :* ${sender.split("@")[0]}\n*📑 Kode Pendaftar :* ${makeid(7)}\n🔧 *Tag :* @${sender.split("@")[0]}\n\n*_GIVE LOGIN_*\n\n*💸 Balance :* $${blnc} Balance\n*🎁 Limit :* ${randomLimit}\n*🎮 Game Limit :* ${rndmLimit}`
-conn.profilePictureUrl(sender, 'image').then( res => conn.sendMessage(from, {caption: cpt, image: {url: res}, mentions: [sender]}, {quoted: msg})).catch(() => conn.sendMessage(from, {caption: cpt, image: fs.readFileSync('./media/profile/5.jpg'), mentions: [sender]}, {quoted: msg}))
+			case prefix+'parung':
+  case prefix+'parung':
+var list = []
+var teskd = `*[ BERIKUT SEPUTARAN BERITA TENTANG PARUNG ]*\n\n`
+for (let i of prgnya) {
+list.push({
+title: i.judul, rowId: `${prefix}getprg ${i.image}|${i.deskripsi}|${i.judul}`})}
+var sections = [{title: "[ PARUNG TV ]", rows:list}]
+var listms = { text: `PARUNG -BOGOR\n\nINFORMASI BERITA DAN AKURAT`, footer: jam, buttonText: "Click Here", sections }
+conn.sendMessage(from, listms, {quoted:msg})
 break
-case prefix+'listuser':
-case prefix+'listpengguna':
-case prefix+'listlogin':
-if (!isOwner && !isPremium)return reply(mess.OnlyOwner)
-var teks = `「 *_PENGGUNA ${botName}_* 」\n\nTotal : *${loginnya.length}*\n\n`
-for (let i = 0; i < loginnya.length; i ++){
-teks += `*Nama :* ${loginnya[i].nama}\n`
-teks += `*Nomer :* ${loginnya[i].nomer.split("@")[0]}\n\n`
+case prefix+'delprg':
+	if (!isOwner) return reply("Perintah Ini Khusus Admin PARUNGTV")
+if (!checkPrg(q, prgnya)) return reply(`Tidak Menemukan Berita`)
+deletePrg(q, prgnya)
+reply(`Sukses Menghapus Berita ${q}`)
+break
+case prefix+'getprg':
+	reply("Tunggu Sebentar Sedang Menampilkan Berita....🔍 ")
+var judul = q.split('|')[0] ? q.split('|')[0] : q
+var gambar = q.split('|')[1] ? q.split('|')[1] : q
+var deskripsi = q.split('|')[2] ? q.split('|')[2] : ''
+var text = `*[ ${deskripsi.toUpperCase()} ]*\n\n` + monospace(`${gambar}`)
+conn.sendMessage(from, {caption: text, image: {url: judul}}, {quoted: msg})
+	break
+	case prefix+'2':
+if ( isImage || isQuotedImage ) {
+var mek = await downloadAndSaveMediaMessage(`image`, 'upload.jpg')
+var tot = await upload(fs.readFileSync('upload.jpg'))
+conn.sendMessage(from, {text: `Sukses Membuat Link\nLink : ${tot}`}, {quoted: msg})
+fs.unlinkSync('upload.jpg')
+} else if ( isVideo || isQuotedVideo ) {
+reply(mess.wait)
+var mek = await downloadAndSaveMediaMessage(`video`, 'upload.mp4')
+var tot = await upload(fs.readFileSync('upload.mp4'))
+conn.sendMessage(from, {text: `Sukses Membuat Link\nLink : ${tot}`}, {quoted: msg})
+fs.unlinkSync('upload.mp4')
+} else {
+  reply(`Kirim gambar/video dengan caption: ${command}`)
 }
-reply(teks)
+limitAdd(sender, limit)
 break
 default:
 
