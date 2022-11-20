@@ -57,7 +57,6 @@ const imgbb = require("imgbb-uploader");
 const ra = require("ra-api");
 const thiccysapi = require("textmaker-lasi");
 const kotz = require("kotz-api");
-const yts = require("yt-search");
 const rmvbg = require("removebg-wrapper");
 const speed = require("performance-now");
 const request = require("request");
@@ -301,17 +300,7 @@ module.exports = async(conn, msg, m, setting, store) => {
 		       return conn.sendMessage(from, { document: doc, mimetype: mime, caption: caption }, options)
 		    }
 		}
-        async function sendPlay(from, query) {
-			var url = await yts(query)
-			url = url.videos[0].url
-			hxz.youtube(url).then(async(data) => {
-				var but = [{buttonId: `/ytplay ${url}`, buttonText: { displayText: `🎵 Audio (${data.size_mp3})` }, type: 1 }, {buttonId: `/ytmp4 ${url}`, buttonText: { displayText: `🎥 Video (${data.size})` }, type: 1 }]
-				conn.sendMessage(from, { caption: `*Title :* ${data.title}\n*Quality :* ${data.quality}\n*Url :* https://youtu.be/${data.id}`, image: { url: data.thumb }, buttons: but, footer: pushname}, {quoted: msg})
-			}).catch((e) => {
-			  conn.sendMessage(from, { text: mess.error.api }, { quoted: msg })
-				ownerNumber.map( i => conn.sendMessage(ownerNumber[0], { text: `Send Play Error : ${e}` }))
-			})
-		 }
+    
         //dashboard
         async function addCountCmdUser(nama, sender, u) {
          var posi = null
